@@ -1,0 +1,5 @@
+---
+title: "Resume"
+---
+
+{{< pdf "resume/Shuyang Zhang2025V1da.pdf" width=100% height=800 >}}
