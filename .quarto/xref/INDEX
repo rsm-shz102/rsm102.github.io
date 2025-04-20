@@ -19,5 +19,20 @@
   },
   "hw1_questions.qmd": {
     "hw1_questions.html": "4c649fdf"
+  },
+  "blog.qmd": {
+    "blog.html": "ee5add01"
+  },
+  "blog/hw1_questions.qmd": {
+    "hw1_questions.html": "9b70e507"
+  },
+  "blog/blog1/hw1_questions.qmd": {
+    "hw1_questions.html": "7694b32e"
+  },
+  "blogs.qmd": {
+    "blogs.html": "7d27b2f7"
+  },
+  "blogs/blog1/hw1_questions.qmd": {
+    "hw1_questions.html": "4627455c"
   }
 }

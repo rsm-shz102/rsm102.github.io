@@ -12,5 +12,15 @@
     "items": [
       "/projects/project1/index.html"
     ]
+  },
+  {
+    "listing": "/blog.html",
+    "items": []
+  },
+  {
+    "listing": "/blogs.html",
+    "items": [
+      "/blogs/blog1/hw1_questions.html"
+    ]
   }
 ]

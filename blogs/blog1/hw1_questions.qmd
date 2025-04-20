@@ -23,7 +23,7 @@ This project seeks to replicate their results.
 ```{python}
 import pandas as pd
 
-df = pd.read_stata("blog/karlan_list_2007.dta")
+df = pd.read_stata("karlan_list_2007.dta")
 df.shape
 df.head()
 ```
