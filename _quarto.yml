@@ -8,8 +8,12 @@ website:
     left:
       - href: index.qmd
         text: About
-      - resume.qmd
-
+      - href: resume.qmd
+        text: Resume
+      - href: projects.qmd 
+        text: Projects 
+      - href: hw1_questions.qmd 
+        text: Blog 
 format:
   html:
     theme: cosmo
