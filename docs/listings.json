@@ -1,26 +1,14 @@
 [
   {
-    "listing": "/projects/project1/index.html",
-    "items": []
-  },
-  {
-    "listing": "/projects/project1/projects.html",
-    "items": []
+    "listing": "/blogs.html",
+    "items": [
+      "/blogs/blog1/hw1_questions.html"
+    ]
   },
   {
     "listing": "/projects.html",
     "items": [
       "/projects/project1/index.html"
-    ]
-  },
-  {
-    "listing": "/blog.html",
-    "items": []
-  },
-  {
-    "listing": "/blogs.html",
-    "items": [
-      "/blogs/blog1/hw1_questions.html"
     ]
   }
 ]
