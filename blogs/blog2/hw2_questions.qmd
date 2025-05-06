@@ -141,6 +141,7 @@ In terms of firm age, customers are more likely to come from older firms. Among 
 This implies that age is also a likely confounder, since older firms tend to have more patents and are more likely to adopt Blueprinty.
 
 Therefore, both region and age show systematic differences between customers and non-customers, supporting the need to control for these variables in further analysis.
+
 ### Estimation of Simple Poisson Model
 
 Since our outcome variable of interest can only be small integer values per a set unit of time, we can use a Poisson density to model the number of patents awarded to each engineering firm over the last 5 years. We start by estimating a simple Poisson model via Maximum Likelihood.

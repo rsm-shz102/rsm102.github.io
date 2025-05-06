@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Shuyang Zhang">
-<meta name="dcterms.date" content="2025-05-04">
+<meta name="dcterms.date" content="2025-05-06">
 
 <title>Poisson Regression Examples – Shuyang’s website</title>
 <style>
@@ -193,6 +193,7 @@ window.Quarto = {
   <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction">Introduction</a></li>
   <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a></li>
   <li><a href="#read-in-data" id="toc-read-in-data" class="nav-link" data-scroll-target="#read-in-data">Read in data</a></li>
+  <li><a href="#estimation-of-simple-poisson-model" id="toc-estimation-of-simple-poisson-model" class="nav-link" data-scroll-target="#estimation-of-simple-poisson-model">Estimation of Simple Poisson Model</a></li>
   <li><a href="#estimation-of-poisson-regression-model" id="toc-estimation-of-poisson-regression-model" class="nav-link" data-scroll-target="#estimation-of-poisson-regression-model">Estimation of Poisson Regression Model</a></li>
   </ul></li>
   <li><a href="#airbnb-case-study" id="toc-airbnb-case-study" class="nav-link" data-scroll-target="#airbnb-case-study">AirBnB Case Study</a>
@@ -225,7 +226,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">May 4, 2025</p>
+      <p class="date">May 6, 2025</p>
     </div>
   </div>
   
@@ -252,7 +253,7 @@ _todo: Read in data._
 </section>
 <section id="read-in-data" class="level3">
 <h3 class="anchored" data-anchor-id="read-in-data">Read in data</h3>
-<div id="c85f5fa5" class="cell" data-execution_count="1">
+<div id="bb95b177" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="st">"blueprinty.csv"</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -315,7 +316,7 @@ _todo: Read in data._
 <!--
 _todo: Compare histograms and means of number of patents by customer status. What do you observe?_
 -->
-<div id="4ed62ae1" class="cell" data-execution_count="2">
+<div id="c917c856" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -398,7 +399,7 @@ _todo: Compare histograms and means of number of patents by customer status. Wha
 <p>Blueprinty customers are not selected at random. It may be important to account for systematic differences in the age and regional location of customers vs non-customers. <!--
 _todo: Compare regions and ages by customer status. What do you observe?_
 --></p>
-<div id="c7d557cf" class="cell" data-execution_count="3">
+<div id="af2001b4" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>df_clean <span class="op">=</span> (</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    df[df[<span class="st">'iscustomer'</span>].isin([<span class="dv">0</span>, <span class="dv">1</span>])]          <span class="co"># Keep only valid values</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>      .dropna(subset<span class="op">=</span>[<span class="st">'patents'</span>, <span class="st">'age'</span>, <span class="st">'region'</span>])</span>
@@ -564,7 +565,10 @@ _todo: Compare regions and ages by customer status. What do you observe?_
 <p>This suggests region could be a confounding factor if firms in the Northeast are more innovative or patent-active.</p>
 <p>In terms of firm age, customers are more likely to come from older firms. Among firms aged 40+, customers and non-customers are nearly evenly split (51% vs 49%). However, in younger groups, especially under 30 years old, customers make up only about 30% to 33%.</p>
 <p>This implies that age is also a likely confounder, since older firms tend to have more patents and are more likely to adopt Blueprinty.</p>
-<p>Therefore, both region and age show systematic differences between customers and non-customers, supporting the need to control for these variables in further analysis. ### Estimation of Simple Poisson Model</p>
+<p>Therefore, both region and age show systematic differences between customers and non-customers, supporting the need to control for these variables in further analysis.</p>
+</section>
+<section id="estimation-of-simple-poisson-model" class="level3">
+<h3 class="anchored" data-anchor-id="estimation-of-simple-poisson-model">Estimation of Simple Poisson Model</h3>
 <p>Since our outcome variable of interest can only be small integer values per a set unit of time, we can use a Poisson density to model the number of patents awarded to each engineering firm over the last 5 years. We start by estimating a simple Poisson model via Maximum Likelihood. <!--
 _todo: Write down mathematically the likelihood for_ $Y \sim \text{Poisson}(\lambda)$. Note that $f(Y|\lambda) = e^{-\lambda}\lambda^Y/Y!$.
 We assume each firm's number of patents \( Y_i \sim \text{Poisson}(\lambda) \), so the likelihood is:
@@ -578,7 +582,7 @@ L(\lambda) = \prod_{i=1}^n \frac{e^{-\lambda} \lambda^{Y_i}}{Y_i!}
 <!--
 _todo: Code the likelihood (or log-likelihood) function for the Poisson model. This is a function of lambda and Y. For example:_
 -->
-<div id="e05cb6c3" class="cell" data-execution_count="4">
+<div id="20474bf5" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.special <span class="im">import</span> gammaln  </span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -591,7 +595,7 @@ _todo: Code the likelihood (or log-likelihood) function for the Poisson model. T
 <!--
 _todo: Use your function to plot lambda on the horizontal axis and the likelihood (or log-likelihood) on the vertical axis for a range of lambdas (use the observed number of patents as the input for Y)._
 -->
-<div id="72fea504" class="cell" data-execution_count="5">
+<div id="eee48d68" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>Y <span class="op">=</span> df_clean[<span class="st">"patents"</span>].values</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -617,7 +621,7 @@ _todo: Use your function to plot lambda on the horizontal axis and the likelihoo
 <!--
 _todo: If you're feeling mathematical, take the first derivative of your likelihood or log-likelihood, set it equal to zero and solve for lambda. You will find lambda_mle is Ybar, which "feels right" because the mean of a Poisson distribution is lambda._
 -->
-<div id="c3b011bf" class="cell" data-execution_count="6">
+<div id="9f142e4a" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>lambda_mle <span class="op">=</span> np.mean(Y)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Closed-form MLE of lambda:"</span>, <span class="bu">round</span>(lambda_mle, <span class="dv">4</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -628,7 +632,7 @@ _todo: If you're feeling mathematical, take the first derivative of your likelih
 _todo: Find the MLE by optimizing your likelihood function with optim() in R or sp.optimize() in Python._
 -->
 <p>By solving the first-order condition for the Poisson log-likelihood, we obtain a closed-form maximum likelihood estimate of λ equal to the sample mean:</p>
-<div id="67555e91" class="cell" data-execution_count="7">
+<div id="dbbe6f31" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.optimize <span class="im">import</span> minimize_scalar</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>neg_loglikelihood <span class="op">=</span> <span class="kw">lambda</span> lmbda: <span class="op">-</span>poisson_loglikelihood(lmbda, Y)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> minimize_scalar(neg_loglikelihood, bounds<span class="op">=</span>(<span class="fl">0.1</span>, <span class="dv">10</span>), method<span class="op">=</span><span class="st">'bounded'</span>)</span>
@@ -643,7 +647,7 @@ _todo: Find the MLE by optimizing your likelihood function with optim() in R or 
 <p>Next, we extend our simple Poisson model to a Poisson Regression Model such that <span class="math inline">\(Y_i = \text{Poisson}(\lambda_i)\)</span> where <span class="math inline">\(\lambda_i = \exp(X_i'\beta)\)</span>. The interpretation is that the success rate of patent awards is not constant across all firms (<span class="math inline">\(\lambda\)</span>) but rather is a function of firm characteristics <span class="math inline">\(X_i\)</span>. Specifically, we will use the covariates age, age squared, region, and whether the firm is a customer of Blueprinty. <!--
 _todo: Update your likelihood or log-likelihood function with an additional argument to take in a covariate matrix X. Also change the parameter of the model from lambda to the beta vector. In this model, lambda must be a positive number, so we choose the inverse link function g_inv() to be exp() so that_ $\lambda_i = e^{X_i'\beta}$. _For example:_
 --></p>
-<div id="253b7845" class="cell" data-execution_count="8">
+<div id="2ac3317d" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.special <span class="im">import</span> gammaln</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -672,7 +676,7 @@ _todo: Update your likelihood or log-likelihood function with an additional argu
 <!--
 _todo: Use your function along with R's optim() or Python's sp.optimize() to find the MLE vector and the Hessian of the Poisson model with covariates. Specifically, the first column of X should be all 1's to enable a constant term in the model, and the subsequent columns should be age, age squared, binary variables for all but one of the regions, and the binary customer variable. Use the Hessian to find standard errors of the beta parameter estimates and present a table of coefficients and standard errors._
 -->
-<div id="5b9d89fc" class="cell" data-execution_count="9">
+<div id="0a173d55" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.special <span class="im">import</span> gammaln</span>
@@ -788,7 +792,7 @@ _todo: Use your function along with R's optim() or Python's sp.optimize() to fin
 <!--
 _todo: Check your results using R's glm() function or Python sm.GLM() function._
 -->
-<div id="07b8806f" class="cell" data-execution_count="10">
+<div id="13c98054" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -900,7 +904,7 @@ _todo: Interpret the results._
 <p>None of the region dummies are statistically significant, suggesting location has little effect after controlling for age and customer status. The positive intercept reflects the expected log number of reviews for an average-age, non-customer listing in the baseline region. Customer status remains a significant positive predictor, supporting the idea that Blueprinty users receive more reviews—though this is an observational result and does not imply causality.X <!--
 _todo: What do you conclude about the effect of Blueprinty's software on patent success? Because the beta coefficients are not directly interpretable, it may help to create two fake datasets: X_0 and X_1 where X_0 is the X data but with iscustomer=0 for every observation and X_1 is the X data but with iscustomer=1 for every observation. Then, use X_0 and your fitted model to get the vector of predicted number of patents (y_pred_0) for every firm in the dataset, and use X_1 to get Y_pred_1 for every firm. Then subtract y_pred_1 minus y_pred_0 and take the average of that vector of differences._
 --></p>
-<div id="838e6aae" class="cell" data-execution_count="11">
+<div id="59afd718" class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>X_0 <span class="op">=</span> X_df.copy()</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>X_1 <span class="op">=</span> X_df.copy()</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>X_0[<span class="st">"iscustomer"</span>] <span class="op">=</span> <span class="dv">0</span></span>
@@ -958,7 +962,7 @@ _todo: Assume the number of reviews is a good proxy for the number of bookings. 
 -->
 <p>We begin by selecting relevant variables from the AirBnB dataset, including price, room type, number of bedrooms and bathrooms, listing duration (<code>days</code>), review scores, and whether the listing is instantly bookable.</p>
 <p>To prepare the data for modeling, we: - Drop rows with missing values in selected columns - Convert the <code>instant_bookable</code> column to a binary variable (<code>1</code> if “t”, else <code>0</code>) - Convert the categorical <code>room_type</code> into dummy variables (dropping the first to avoid multicollinearity) - Construct the design matrix <code>X_df</code>, including a constant intercept column and all covariates</p>
-<div id="565a9e10" class="cell" data-execution_count="12">
+<div id="f1e89d44" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="st">"airbnb.csv"</span>)</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1078,7 +1082,7 @@ _todo: Assume the number of reviews is a good proxy for the number of bookings. 
 </div>
 </div>
 </div>
-<div id="3f80c06f" class="cell" data-execution_count="13">
+<div id="ee62859e" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>vars_to_use <span class="op">=</span> [</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"number_of_reviews"</span>, <span class="st">"price"</span>, <span class="st">"room_type"</span>, <span class="st">"bedrooms"</span>, <span class="st">"bathrooms"</span>, <span class="st">"days"</span>,</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"review_scores_cleanliness"</span>, <span class="st">"review_scores_location"</span>, <span class="st">"review_scores_value"</span>,</span>
@@ -1105,7 +1109,7 @@ _todo: Assume the number of reviews is a good proxy for the number of bookings. 
 <span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>Y <span class="op">=</span> df_model[<span class="st">"number_of_reviews"</span>].astype(<span class="bu">int</span>).values</span>
 <span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> X_df.astype(<span class="bu">float</span>).values</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="2da8a0f4" class="cell" data-execution_count="14">
+<div id="265ed30d" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -1134,101 +1138,101 @@ _todo: Assume the number of reviews is a good proxy for the number of bookings. 
 <span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>styled_table  <span class="co"># Output table in .qmd</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="14">
 <style type="text/css">
-#T_7c254 th {
+#T_a5727 th {
   text-align: center;
 }
-#T_7c254_row0_col0, #T_7c254_row0_col1, #T_7c254_row0_col2, #T_7c254_row0_col3, #T_7c254_row1_col0, #T_7c254_row1_col1, #T_7c254_row1_col2, #T_7c254_row1_col3, #T_7c254_row2_col0, #T_7c254_row2_col1, #T_7c254_row2_col2, #T_7c254_row2_col3, #T_7c254_row3_col0, #T_7c254_row3_col1, #T_7c254_row3_col2, #T_7c254_row3_col3, #T_7c254_row4_col0, #T_7c254_row4_col1, #T_7c254_row4_col2, #T_7c254_row4_col3, #T_7c254_row5_col0, #T_7c254_row5_col1, #T_7c254_row5_col2, #T_7c254_row5_col3, #T_7c254_row6_col0, #T_7c254_row6_col1, #T_7c254_row6_col2, #T_7c254_row6_col3, #T_7c254_row7_col0, #T_7c254_row7_col1, #T_7c254_row7_col2, #T_7c254_row7_col3, #T_7c254_row8_col0, #T_7c254_row8_col1, #T_7c254_row8_col2, #T_7c254_row8_col3, #T_7c254_row9_col0, #T_7c254_row9_col1, #T_7c254_row9_col2, #T_7c254_row9_col3, #T_7c254_row10_col0, #T_7c254_row10_col1, #T_7c254_row10_col2, #T_7c254_row10_col3 {
+#T_a5727_row0_col0, #T_a5727_row0_col1, #T_a5727_row0_col2, #T_a5727_row0_col3, #T_a5727_row1_col0, #T_a5727_row1_col1, #T_a5727_row1_col2, #T_a5727_row1_col3, #T_a5727_row2_col0, #T_a5727_row2_col1, #T_a5727_row2_col2, #T_a5727_row2_col3, #T_a5727_row3_col0, #T_a5727_row3_col1, #T_a5727_row3_col2, #T_a5727_row3_col3, #T_a5727_row4_col0, #T_a5727_row4_col1, #T_a5727_row4_col2, #T_a5727_row4_col3, #T_a5727_row5_col0, #T_a5727_row5_col1, #T_a5727_row5_col2, #T_a5727_row5_col3, #T_a5727_row6_col0, #T_a5727_row6_col1, #T_a5727_row6_col2, #T_a5727_row6_col3, #T_a5727_row7_col0, #T_a5727_row7_col1, #T_a5727_row7_col2, #T_a5727_row7_col3, #T_a5727_row8_col0, #T_a5727_row8_col1, #T_a5727_row8_col2, #T_a5727_row8_col3, #T_a5727_row9_col0, #T_a5727_row9_col1, #T_a5727_row9_col2, #T_a5727_row9_col3, #T_a5727_row10_col0, #T_a5727_row10_col1, #T_a5727_row10_col2, #T_a5727_row10_col3 {
   text-align: center;
 }
 </style>
 
-<table id="T_7c254" class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<table id="T_a5727" class="caption-top table table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
 <tr class="header">
 <th class="blank level0" data-quarto-table-cell-role="th">&nbsp;</th>
-<th id="T_7c254_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Coefficient</th>
-<th id="T_7c254_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Std. Error</th>
-<th id="T_7c254_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">z</th>
-<th id="T_7c254_level0_col3" class="col_heading level0 col3" data-quarto-table-cell-role="th">P&gt;|z|</th>
+<th id="T_a5727_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Coefficient</th>
+<th id="T_a5727_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Std. Error</th>
+<th id="T_a5727_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">z</th>
+<th id="T_a5727_level0_col3" class="col_heading level0 col3" data-quarto-table-cell-role="th">P&gt;|z|</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_7c254_level0_row0" class="row_heading level0 row0" data-quarto-table-cell-role="th">intercept</td>
-<td id="T_7c254_row0_col0" class="data row0 col0">3.4980</td>
-<td id="T_7c254_row0_col1" class="data row0 col1">0.0161</td>
-<td id="T_7c254_row0_col2" class="data row0 col2">217.40</td>
-<td id="T_7c254_row0_col3" class="data row0 col3">0.0000</td>
+<td id="T_a5727_level0_row0" class="row_heading level0 row0" data-quarto-table-cell-role="th">intercept</td>
+<td id="T_a5727_row0_col0" class="data row0 col0">3.4980</td>
+<td id="T_a5727_row0_col1" class="data row0 col1">0.0161</td>
+<td id="T_a5727_row0_col2" class="data row0 col2">217.40</td>
+<td id="T_a5727_row0_col3" class="data row0 col3">0.0000</td>
 </tr>
 <tr class="even">
-<td id="T_7c254_level0_row1" class="row_heading level0 row1" data-quarto-table-cell-role="th">price</td>
-<td id="T_7c254_row1_col0" class="data row1 col0">-0.0000</td>
-<td id="T_7c254_row1_col1" class="data row1 col1">0.0000</td>
-<td id="T_7c254_row1_col2" class="data row1 col2">-2.15</td>
-<td id="T_7c254_row1_col3" class="data row1 col3">0.0315</td>
+<td id="T_a5727_level0_row1" class="row_heading level0 row1" data-quarto-table-cell-role="th">price</td>
+<td id="T_a5727_row1_col0" class="data row1 col0">-0.0000</td>
+<td id="T_a5727_row1_col1" class="data row1 col1">0.0000</td>
+<td id="T_a5727_row1_col2" class="data row1 col2">-2.15</td>
+<td id="T_a5727_row1_col3" class="data row1 col3">0.0315</td>
 </tr>
 <tr class="odd">
-<td id="T_7c254_level0_row2" class="row_heading level0 row2" data-quarto-table-cell-role="th">bedrooms</td>
-<td id="T_7c254_row2_col0" class="data row2 col0">0.0741</td>
-<td id="T_7c254_row2_col1" class="data row2 col1">0.0020</td>
-<td id="T_7c254_row2_col2" class="data row2 col2">37.20</td>
-<td id="T_7c254_row2_col3" class="data row2 col3">0.0000</td>
+<td id="T_a5727_level0_row2" class="row_heading level0 row2" data-quarto-table-cell-role="th">bedrooms</td>
+<td id="T_a5727_row2_col0" class="data row2 col0">0.0741</td>
+<td id="T_a5727_row2_col1" class="data row2 col1">0.0020</td>
+<td id="T_a5727_row2_col2" class="data row2 col2">37.20</td>
+<td id="T_a5727_row2_col3" class="data row2 col3">0.0000</td>
 </tr>
 <tr class="even">
-<td id="T_7c254_level0_row3" class="row_heading level0 row3" data-quarto-table-cell-role="th">bathrooms</td>
-<td id="T_7c254_row3_col0" class="data row3 col0">-0.1177</td>
-<td id="T_7c254_row3_col1" class="data row3 col1">0.0037</td>
-<td id="T_7c254_row3_col2" class="data row3 col2">-31.39</td>
-<td id="T_7c254_row3_col3" class="data row3 col3">0.0000</td>
+<td id="T_a5727_level0_row3" class="row_heading level0 row3" data-quarto-table-cell-role="th">bathrooms</td>
+<td id="T_a5727_row3_col0" class="data row3 col0">-0.1177</td>
+<td id="T_a5727_row3_col1" class="data row3 col1">0.0037</td>
+<td id="T_a5727_row3_col2" class="data row3 col2">-31.39</td>
+<td id="T_a5727_row3_col3" class="data row3 col3">0.0000</td>
 </tr>
 <tr class="odd">
-<td id="T_7c254_level0_row4" class="row_heading level0 row4" data-quarto-table-cell-role="th">days</td>
-<td id="T_7c254_row4_col0" class="data row4 col0">0.0001</td>
-<td id="T_7c254_row4_col1" class="data row4 col1">0.0000</td>
-<td id="T_7c254_row4_col2" class="data row4 col2">129.76</td>
-<td id="T_7c254_row4_col3" class="data row4 col3">0.0000</td>
+<td id="T_a5727_level0_row4" class="row_heading level0 row4" data-quarto-table-cell-role="th">days</td>
+<td id="T_a5727_row4_col0" class="data row4 col0">0.0001</td>
+<td id="T_a5727_row4_col1" class="data row4 col1">0.0000</td>
+<td id="T_a5727_row4_col2" class="data row4 col2">129.76</td>
+<td id="T_a5727_row4_col3" class="data row4 col3">0.0000</td>
 </tr>
 <tr class="even">
-<td id="T_7c254_level0_row5" class="row_heading level0 row5" data-quarto-table-cell-role="th">review_scores_cleanliness</td>
-<td id="T_7c254_row5_col0" class="data row5 col0">0.1131</td>
-<td id="T_7c254_row5_col1" class="data row5 col1">0.0015</td>
-<td id="T_7c254_row5_col2" class="data row5 col2">75.61</td>
-<td id="T_7c254_row5_col3" class="data row5 col3">0.0000</td>
+<td id="T_a5727_level0_row5" class="row_heading level0 row5" data-quarto-table-cell-role="th">review_scores_cleanliness</td>
+<td id="T_a5727_row5_col0" class="data row5 col0">0.1131</td>
+<td id="T_a5727_row5_col1" class="data row5 col1">0.0015</td>
+<td id="T_a5727_row5_col2" class="data row5 col2">75.61</td>
+<td id="T_a5727_row5_col3" class="data row5 col3">0.0000</td>
 </tr>
 <tr class="odd">
-<td id="T_7c254_level0_row6" class="row_heading level0 row6" data-quarto-table-cell-role="th">review_scores_location</td>
-<td id="T_7c254_row6_col0" class="data row6 col0">-0.0769</td>
-<td id="T_7c254_row6_col1" class="data row6 col1">0.0016</td>
-<td id="T_7c254_row6_col2" class="data row6 col2">-47.80</td>
-<td id="T_7c254_row6_col3" class="data row6 col3">0.0000</td>
+<td id="T_a5727_level0_row6" class="row_heading level0 row6" data-quarto-table-cell-role="th">review_scores_location</td>
+<td id="T_a5727_row6_col0" class="data row6 col0">-0.0769</td>
+<td id="T_a5727_row6_col1" class="data row6 col1">0.0016</td>
+<td id="T_a5727_row6_col2" class="data row6 col2">-47.80</td>
+<td id="T_a5727_row6_col3" class="data row6 col3">0.0000</td>
 </tr>
 <tr class="even">
-<td id="T_7c254_level0_row7" class="row_heading level0 row7" data-quarto-table-cell-role="th">review_scores_value</td>
-<td id="T_7c254_row7_col0" class="data row7 col0">-0.0911</td>
-<td id="T_7c254_row7_col1" class="data row7 col1">0.0018</td>
-<td id="T_7c254_row7_col2" class="data row7 col2">-50.49</td>
-<td id="T_7c254_row7_col3" class="data row7 col3">0.0000</td>
+<td id="T_a5727_level0_row7" class="row_heading level0 row7" data-quarto-table-cell-role="th">review_scores_value</td>
+<td id="T_a5727_row7_col0" class="data row7 col0">-0.0911</td>
+<td id="T_a5727_row7_col1" class="data row7 col1">0.0018</td>
+<td id="T_a5727_row7_col2" class="data row7 col2">-50.49</td>
+<td id="T_a5727_row7_col3" class="data row7 col3">0.0000</td>
 </tr>
 <tr class="odd">
-<td id="T_7c254_level0_row8" class="row_heading level0 row8" data-quarto-table-cell-role="th">instant_bookable</td>
-<td id="T_7c254_row8_col0" class="data row8 col0">0.3459</td>
-<td id="T_7c254_row8_col1" class="data row8 col1">0.0029</td>
-<td id="T_7c254_row8_col2" class="data row8 col2">119.67</td>
-<td id="T_7c254_row8_col3" class="data row8 col3">0.0000</td>
+<td id="T_a5727_level0_row8" class="row_heading level0 row8" data-quarto-table-cell-role="th">instant_bookable</td>
+<td id="T_a5727_row8_col0" class="data row8 col0">0.3459</td>
+<td id="T_a5727_row8_col1" class="data row8 col1">0.0029</td>
+<td id="T_a5727_row8_col2" class="data row8 col2">119.67</td>
+<td id="T_a5727_row8_col3" class="data row8 col3">0.0000</td>
 </tr>
 <tr class="even">
-<td id="T_7c254_level0_row9" class="row_heading level0 row9" data-quarto-table-cell-role="th">room_Private room</td>
-<td id="T_7c254_row9_col0" class="data row9 col0">-0.0105</td>
-<td id="T_7c254_row9_col1" class="data row9 col1">0.0027</td>
-<td id="T_7c254_row9_col2" class="data row9 col2">-3.85</td>
-<td id="T_7c254_row9_col3" class="data row9 col3">0.0001</td>
+<td id="T_a5727_level0_row9" class="row_heading level0 row9" data-quarto-table-cell-role="th">room_Private room</td>
+<td id="T_a5727_row9_col0" class="data row9 col0">-0.0105</td>
+<td id="T_a5727_row9_col1" class="data row9 col1">0.0027</td>
+<td id="T_a5727_row9_col2" class="data row9 col2">-3.85</td>
+<td id="T_a5727_row9_col3" class="data row9 col3">0.0001</td>
 </tr>
 <tr class="odd">
-<td id="T_7c254_level0_row10" class="row_heading level0 row10" data-quarto-table-cell-role="th">room_Shared room</td>
-<td id="T_7c254_row10_col0" class="data row10 col0">-0.2463</td>
-<td id="T_7c254_row10_col1" class="data row10 col1">0.0086</td>
-<td id="T_7c254_row10_col2" class="data row10 col2">-28.58</td>
-<td id="T_7c254_row10_col3" class="data row10 col3">0.0000</td>
+<td id="T_a5727_level0_row10" class="row_heading level0 row10" data-quarto-table-cell-role="th">room_Shared room</td>
+<td id="T_a5727_row10_col0" class="data row10 col0">-0.2463</td>
+<td id="T_a5727_row10_col1" class="data row10 col1">0.0086</td>
+<td id="T_a5727_row10_col2" class="data row10 col2">-28.58</td>
+<td id="T_a5727_row10_col3" class="data row10 col3">0.0000</td>
 </tr>
 </tbody>
 </table>
