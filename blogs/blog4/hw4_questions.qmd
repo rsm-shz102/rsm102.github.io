@@ -1,0 +1,377 @@
+---
+title: "K-Means Clustering & Key Drivers Analysis – A Machine Learning Workflow"
+author: Shuyang Zhang
+date: today
+---
+<!-- 
+_todo: do two analyses.  Do one of either 1a or 1b, AND one of either 2a or 2b._
+-->
+
+## K-Means Clustering from Scratch
+<!-- 
+_todo: write your own code to implement the k-means algorithm.  Make plots of the various steps the algorithm takes so you can "see" the algorithm working.  Test your algorithm on the Palmer Penguins dataset, specifically using the bill length and flipper length variables.  Compare your results to the built-in `kmeans` function in R or Python._
+
+_todo: Calculate both the within-cluster-sum-of-squares and silhouette scores (you can use built-in functions to do so) and plot the results for various numbers of clusters (ie, K=2,3,...,7). What is the "right" number of clusters as suggested by these two metrics?_
+
+_If you want a challenge, add your plots as an animated gif on your website so that the result looks something like [this](https://www.youtube.com/shorts/XCsoWZU9oN8)._
+-->
+### Background: Unsupervised Learning & K-Means
+
+Unsupervised learning methods are useful when we work with unlabeled data and aim to discover hidden patterns or structure. One of the most widely used techniques in this category is **K-Means clustering**.
+
+The K-Means algorithm seeks to partition the dataset into *K* groups such that the within-cluster variation is minimized. Each iteration of the algorithm consists of two main steps:
+
+1. **Assignment Step**: Assign each data point to the nearest centroid;
+2. **Update Step**: Recalculate the centroids as the mean of all data points in the cluster.
+
+These steps repeat until convergence (i.e., centroids no longer move significantly). This approach is simple, fast, and widely applicable.
+```{python}
+import pandas as pd
+penguins = pd.read_csv("palmer_penguins.csv")
+penguins.head()
+```
+
+### Dataset: Palmer Penguins
+
+The dataset used for this analysis is the Palmer Penguins dataset, which offers a modern alternative to the classic Iris dataset. It includes biometric measurements of penguins collected by Dr. Kristen Gorman and the Palmer Station Long Term Ecological Research (LTER) Program in Antarctica.
+
+### Key Variables
+
+Each row in the dataset represents a single penguin. The key variables include:
+
+- **`species`**: Penguin species (*Adelie*, *Chinstrap*, *Gentoo*)
+- **`island`**: Island where the penguin was observed (*Torgersen*, *Biscoe*, or *Dream*)
+- **`bill_length_mm`**: Length of the penguin’s bill in millimeters
+- **`bill_depth_mm`**: Depth (thickness) of the bill in millimeters
+- **`flipper_length_mm`**: Length of the flipper in millimeters
+- **`body_mass_g`**: Body mass in grams
+- **`sex`**: Biological sex (*male* or *female*)
+- **`year`**: Year when the measurement was taken (e.g., 2007)
+
+### Features Used for Clustering
+
+In this assignment, we focus on the following two numerical variables:
+
+- `bill_length_mm`  
+- `flipper_length_mm`
+
+These features are selected because they vary meaningfully across penguin species and offer interpretable physical distinctions:
+- Bill length reflects feeding behavior and species differences;
+- Flipper length is correlated with swimming ability and size.
+
+Before clustering, both features are standardized using `StandardScaler` to ensure they contribute equally to the distance calculation in K-Means.
+
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score
+from sklearn.datasets import load_iris
+
+
+penguins = sns.load_dataset("penguins")
+penguins = penguins.dropna(subset=["bill_length_mm", "flipper_length_mm"])  
+
+X = penguins[["bill_length_mm", "flipper_length_mm"]].values
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+```
+### Dataset: Palmer Penguins
+
+In this assignment, We focus on the following two continuous numerical features:
+
+- **bill_length_mm** – length of the penguin's bill (beak), used in feeding;
+- **flipper_length_mm** – length of the flipper, which relates to swimming ability.
+
+These two features offer a two-dimensional space that is suitable for visualizing clustering performance.
+
+```{python}
+def kmeans(X, k, max_iters=100, seed=42):
+    np.random.seed(seed)
+    n_samples, n_features = X.shape
+    
+    # Randomly initialize centroids
+    centroids = X[np.random.choice(n_samples, k, replace=False)]
+    
+    for i in range(max_iters):
+        # Step 1: Assign each point to the nearest centroid
+        distances = np.linalg.norm(X[:, np.newaxis] - centroids, axis=2)
+        labels = np.argmin(distances, axis=1)
+
+        # Step 2: Update centroids
+        new_centroids = np.array([X[labels == j].mean(axis=0) for j in range(k)])
+
+        # Convergence condition
+        if np.allclose(centroids, new_centroids):
+            break
+        centroids = new_centroids
+        
+    return labels, centroids
+
+```
+
+```{python}
+def plot_clusters(X, labels, centroids, title):
+    plt.figure(figsize=(6, 5))
+    plt.scatter(X[:, 0], X[:, 1], c=labels, cmap='Set2', s=40)
+    plt.scatter(centroids[:, 0], centroids[:, 1], c='black', marker='x', s=100)
+    plt.title(title)
+    plt.xlabel("Bill Length (scaled)")
+    plt.ylabel("Flipper Length (scaled)")
+    plt.grid(True)
+    plt.show()
+```
+
+### Method Summary
+
+To demonstrate the K-Means clustering process:
+
+- The input variables were **standardized** to ensure equal contribution to distance-based calculations.
+- A **custom K-Means algorithm** was implemented from scratch to better understand the iterative process of centroid updates and cluster assignment.
+- The clustering process was **visualized as an animation**, illustrating how group assignments and centroids evolved over iterations.
+- Clustering quality was evaluated across different values of *K* using two common metrics:
+  - **WCSS (Within-Cluster Sum of Squares)** – assessing cluster compactness;
+  - **Silhouette Score** – measuring separation between clusters.
+
+To validate the approach, results were compared against the output of scikit-learn’s built-in `KMeans` implementation, which produced similar groupings and centroids, confirming the correctness of the custom implementation.
+```{python}
+wcss = []
+sil_scores = []
+K_range = range(2, 8)
+
+for k in K_range:
+    labels, centroids = kmeans(X_scaled, k)
+    wcss.append(sum(np.min(np.linalg.norm(X_scaled[:, np.newaxis] - centroids, axis=2)**2, axis=1)))
+    sil_scores.append(silhouette_score(X_scaled, labels))
+
+# Plot evaluation curves
+plt.figure(figsize=(12, 5))
+plt.subplot(1, 2, 1)
+plt.plot(K_range, wcss, marker='o')
+plt.title("Within-Cluster Sum of Squares (WCSS)")
+plt.xlabel("K")
+plt.ylabel("WCSS")
+
+plt.subplot(1, 2, 2)
+plt.plot(K_range, sil_scores, marker='s', color='orange')
+plt.title("Silhouette Score")
+plt.xlabel("K")
+plt.ylabel("Score")
+plt.tight_layout()
+plt.show()
+
+```
+
+```{python}
+from sklearn.cluster import KMeans
+
+k = 3  # Assume we choose 3 clusters
+sk_model = KMeans(n_clusters=k, random_state=42)
+sk_labels = sk_model.fit_predict(X_scaled)
+
+plot_clusters(X_scaled, sk_labels, sk_model.cluster_centers_, "Sklearn KMeans Result (k=3)")
+```
+
+```{python}
+def kmeans_with_history(X, k, max_iters=10, seed=42):
+    np.random.seed(seed)
+    n_samples, n_features = X.shape
+    centroids = X[np.random.choice(n_samples, k, replace=False)]
+    
+    history = []  
+
+    for _ in range(max_iters):
+        distances = np.linalg.norm(X[:, np.newaxis] - centroids, axis=2)
+        labels = np.argmin(distances, axis=1)
+        history.append((labels.copy(), centroids.copy()))
+        
+        new_centroids = np.array([X[labels == j].mean(axis=0) for j in range(k)])
+        if np.allclose(centroids, new_centroids):
+            break
+        centroids = new_centroids
+
+    return history
+
+def animate_kmeans(history, X, interval=1000):
+    fig, ax = plt.subplots(figsize=(6, 5))
+
+    def update(i):
+        ax.clear()
+        labels, centroids = history[i]
+        ax.scatter(X[:, 0], X[:, 1], c=labels, cmap='Set2', s=30)
+        ax.scatter(centroids[:, 0], centroids[:, 1], c='black', marker='X', s=100)
+        ax.set_title(f"Iteration {i+1}")
+        ax.set_xlabel("Bill Length (scaled)")
+        ax.set_ylabel("Flipper Length (scaled)")
+        ax.grid(True)
+
+    ani = animation.FuncAnimation(fig, update, frames=len(history), interval=interval, repeat=False)
+    return ani
+
+```
+
+```{python}
+from matplotlib import animation
+from IPython.display import HTML
+
+k = 3
+history = kmeans_with_history(X_scaled, k, max_iters=10)
+ani = animate_kmeans(history, X_scaled)
+HTML(ani.to_jshtml()) 
+```
+### Sklearn KMeans Result (k=3)
+
+The scatterplot above shows the result of applying scikit-learn's `KMeans` clustering with **k=3** on the standardized penguin dataset. Each point represents a single penguin, plotted according to:
+
+- X-axis: **Bill Length (scaled)**
+- Y-axis: **Flipper Length (scaled)**
+
+The colors correspond to the predicted cluster assignments. The large black X markers indicate the **cluster centroids** calculated by the algorithm.
+
+From the plot, we observe:
+
+- Three **well-separated clusters** form in the two-dimensional space, validating that K=3 is a reasonable choice;
+- The top cluster (light teal) likely groups penguins with **longer bills and flippers**;
+- The bottom-left cluster (light green) contains penguins with **shorter bills and shorter flippers**;
+- The gray cluster in the center includes penguins with **intermediate features**, acting as a natural buffer or transition group;
+- The centroids are clearly positioned at the heart of each cluster, confirming that the algorithm has converged to distinct group centers.
+
+This clustering result aligns with the biological interpretation of species separation, and supports the previous Silhouette score evaluation suggesting k=3 as the optimal number of clusters.
+
+### Conclusion
+
+This exercise provided a hands-on experience with unsupervised learning, reinforcing how K-Means iteratively works to separate structure from unlabeled data. By building the algorithm from scratch, evaluating it quantitatively, and visualizing it dynamically, we gain deeper insight into both the method and the dataset.
+<!-- 
+## 1b. Latent-Class MNL
+
+_todo: Use the Yogurt dataset to estimate a latent-class MNL model. This model was formally introduced in the paper by Kamakura & Russell (1989); you may want to read or reference page 2 of the pdf, which is described in the class slides, session 4, slides 56-57._
+
+_The data provides anonymized consumer identifiers (`id`), a vector indicating the chosen product (`y1`:`y4`), a vector indicating if any products were "featured" in the store as a form of advertising (`f1`:`f4`), and the products' prices in price-per-ounce (`p1`:`p4`). For example, consumer 1 purchased yogurt 4 at a price of 0.079/oz and none of the yogurts were featured/advertised at the time of consumer 1's purchase.  Consumers 2 through 7 each bought yogurt 2, etc. You may want to reshape the data from its current "wide" format into a "long" format._
+
+_todo: Fit the standard MNL model on these data.  Then fit the latent-class MNL on these data separately for 2, 3, 4, and 5 latent classes._
+
+_todo: How many classes are suggested by the $BIC = -2*\ell_n  + k*log(n)$? (where $\ell_n$ is the log-likelihood, $n$ is the sample size, and $k$ is the number of parameters.) The Bayesian-Schwarz Information Criterion [link](https://en.wikipedia.org/wiki/Bayesian_information_criterion) is a metric that assess the benefit of a better log likelihood at the expense of additional parameters to estimate -- akin to the adjusted R-squared for the linear regression model. Note, that a **lower** BIC indicates a better model fit, accounting for the number of parameters in the model._
+
+_todo: compare the parameter estimates between (1) the aggregate MNL, and (2) the latent-class MNL with the number of classes suggested by the BIC._
+-->
+
+<!-- 
+## 2a. K Nearest Neighbors
+
+_todo: implement KNN by hand._
+
+_todo: check your function by..._ 
+-->
+
+<!-- 
+## 2b. Key Drivers Analysis
+
+_todo: replicate the table on slide 75 of the session 5 slides. Specifically, using the dataset provided in the file data_for_drivers_analysis.csv, calculate: pearson correlations, standardized regression coefficients, "usefulness", Shapley values for a linear regression, Johnson's relative weights, and the mean decrease in the gini coefficient from a random forest. You may use packages built into R or Python; you do not need to perform these calculations "by hand."_
+
+_If you want a challenge, add additional measures to the table such as the importance scores from XGBoost, from a Neural Network, or from any additional method that measures the importance of variables._
+-->
+## Key Drivers Analysis (Supervised Learning)
+
+This analysis aims to identify and compare the most influential drivers (features) that affect a target variable, replicating the structure shown on slide 75 of the course slides.
+
+Several feature importance methods are applied to the same dataset to provide a robust understanding of which variables are most predictive:
+
+- **Pearson Correlations**
+- **Standardized Regression Coefficients**
+- **Shapley (LMG) Values**
+- **Johnson's Relative Weights**
+- **Mean Decrease in Gini (from Random Forest)**
+
+By examining these techniques side by side, we gain both statistical and machine learning–based perspectives on variable importance. This multi-method approach supports more confident and interpretable decisions when determining which features matter most.
+```{python}
+df = pd.read_csv("data_for_drivers_analysis.csv")
+df.head()
+```
+
+```{python}
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+import shap
+import matplotlib.pyplot as plt
+
+# 1. Load data
+df = pd.read_csv("data_for_drivers_analysis.csv")
+
+# 2. Define target and features
+y = df["satisfaction"]
+X = df[['trust', 'build', 'differs', 'easy', 'appealing', 
+        'rewarding', 'popular', 'service', 'impact']]
+
+# 3. Standardize features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+X_scaled_df = pd.DataFrame(X_scaled, columns=X.columns)
+
+# 4. Pearson correlation
+pearson_corrs = [np.corrcoef(X_scaled[:, i], y)[0, 1] for i in range(X.shape[1])]
+
+# 5. Standardized regression coefficients
+reg = LinearRegression()
+reg.fit(X_scaled, y)
+reg_coefs = reg.coef_
+
+# 6. Shapley values via SHAP
+rf = RandomForestRegressor(random_state=42)
+rf.fit(X_scaled, y)
+explainer = shap.Explainer(rf)
+shap_values = explainer(X_scaled)
+shap_means = np.abs(shap_values.values).mean(axis=0)
+
+# 7. Random Forest Gini importance
+rf_importance = rf.feature_importances_
+
+# 8. Compile results into a DataFrame
+results = pd.DataFrame({
+    "Feature": X.columns,
+    "Pearson Corr": np.round(np.abs(pearson_corrs)*100, 1),
+    "Std Coef": np.round(np.abs(reg_coefs)*100, 1),
+    "SHAP Value (avg)": np.round(shap_means / shap_means.sum() * 100, 1),
+    "RF Gini Importance": np.round(rf_importance * 100, 1)
+})
+
+# 9. Sort by SHAP importance (or choose your preferred metric)
+results_sorted = results.sort_values("SHAP Value (avg)", ascending=False)
+results_sorted
+
+```
+
+```{python}
+results_sorted.set_index("Feature")[["SHAP Value (avg)", "RF Gini Importance"]].plot.barh(figsize=(8,6))
+plt.title("Top Drivers of Satisfaction")
+plt.xlabel("Importance Score (%)")
+plt.gca().invert_yaxis()
+plt.grid(True, axis='x')
+plt.tight_layout()
+plt.show()
+```
+
+### Summary: Key Drivers of Satisfaction
+
+To identify the most influential drivers of satisfaction, several feature importance techniques were applied, including:
+
+- **Pearson correlation**
+- **Standardized regression coefficients**
+- **SHAP values**
+- **Random Forest Gini importance**
+
+Based on the results:
+
+- **`impact`**, **`trust`**, and **`service`** consistently rank among the top three drivers across multiple methods, suggesting that they are robust predictors of overall satisfaction.
+- `impact` ranks highest in both SHAP values and Pearson correlation, indicating that customers who feel the product "makes a difference in their life" tend to report higher satisfaction.
+- `trust` also shows high importance across all metrics, highlighting the role of brand credibility.
+- While features like `rewarding`, `easy`, and `differs` appear lower in SHAP and Gini scores, they may still provide secondary insight in certain modeling contexts.
+
+The bar chart above visually compares SHAP values and Random Forest Gini scores. Although the two measures differ in methodology, they align closely in identifying the key drivers.
+
+By combining statistical and machine learning–based importance scores, this analysis provides a more complete understanding of what shapes customer satisfaction and can guide data-driven strategy decisions.
